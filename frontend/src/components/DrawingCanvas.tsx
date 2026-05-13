@@ -1,0 +1,1 @@
+// the SVG surface, pointer event handlers

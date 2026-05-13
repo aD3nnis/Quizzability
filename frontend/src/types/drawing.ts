@@ -1,0 +1,1 @@
+// Point, Stroke, DrawingTool types
