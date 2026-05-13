@@ -63,19 +63,32 @@ This project is being built for a **portfolio targeting Series B full stack engi
 | Animation | Framer Motion | Card flip animations; will look impressive in demos |
 | Drawing | Custom SVG drawing engine via React | Keep drawing logic in a custom hook; SVG renders inside JSX naturally |
 | Stroke Smoothing | Perfect Freehand (library) | Industry-standard, pressure-aware, outputs SVG-compatible polygon data |
-| Backend | Node.js + Express | Already familiar from Bitcoin tracker project; faster ramp-up than Spring Boot |
-| Database | PostgreSQL | Relational, structured, familiar; `jsonb` column for stroke data |
+| Backend | Spring Boot 3 (Java) | Type-safe, structured, enterprise-relevant; signals backend seriousness; differentiates from prior Node projects |
+| ORM | Spring Data JPA + Hibernate | Handles relational mapping cleanly; repositories give CRUD for free |
+| Auth | Spring Security | Industry-standard, full-featured; mirrors what you'd encounter professionally |
+| Database | PostgreSQL | Relational, structured; `jsonb` column for stroke data |
 | File Storage | Not needed (strokes stored as JSON directly in DB) | Vector approach eliminates the need for S3/Cloudinary |
-| Auth | Supabase Auth or Clerk | Don't hand-roll auth on a portfolio project |
-| Deployment | Render (backend) + Netlify or Vercel (frontend) | Already familiar with Render from prior projects |
+| Deployment | Railway or Render (backend) + Netlify or Vercel (frontend) | Both support Java/Spring Boot; Railway is particularly smooth for Spring |
 
-### Why Node over Spring Boot
+### Why Spring Boot over Node/Express
 
-Spring Boot is a serious framework worth learning, but it has a steep configuration curve. The risk is spending weeks fighting the framework instead of building the features that showcase your strengths — the drawing engine, the UI, the data model. You already have a deployed Node/Express/PostgreSQL project. Going deeper faster is more valuable than switching stacks for its own sake. Spring Boot is a later iteration.
+Your resume already has a deployed Node/Express/PostgreSQL project. Another one doesn't move the needle. Spring Boot is a genuine differentiator — it signals backend seriousness in a way that Express (which is minimal by design) doesn't.
+
+Concrete advantages for this project specifically:
+
+- **Type safety end to end.** Java on the backend plus TypeScript on the frontend gives you compile-time guarantees across the full stack. As the data model grows — strokes, decks, cards, users, study sessions — this prevents a class of runtime bugs that untyped Express apps are prone to.
+- **Structure at scale.** Express gives you nothing by default. Spring Boot enforces an architecture that holds up as complexity grows. Coming back to this project in six months, the codebase will be easier to reason about.
+- **Spring Data JPA.** The relational model here (users own decks, decks own cards) maps cleanly to JPA entities. Repositories give you CRUD operations and expressive queries without raw SQL everywhere.
+- **Spring Security.** A more complete, professional auth solution than stitching together JWT libraries in Express.
+- **Career transferability.** Java is the dominant language in enterprise backends, Android, fintech, and large-scale systems — all sectors with strong hiring. It broadens your surface area beyond the JavaScript ecosystem.
+
+### Ramp-Up Strategy
+
+Spend one to two weeks building a throwaway CRUD API in Spring Boot before starting the notecard project. Learn the application context, dependency injection, and JPA in isolation. Then you're not learning the framework and the product simultaneously.
 
 ### Why React over Vue
 
-Your Vue experience transfers conceptually (components, reactivity, lifecycle). But React is the dominant framework in the current job market. Showing you can work in both demonstrates adaptability, which is a genuine differentiator.
+Your Vue experience transfers conceptually (components, reactivity, lifecycle). React is the dominant framework in the current job market. Showing you can work in both demonstrates adaptability, which is a genuine differentiator.
 
 ---
 
@@ -309,7 +322,7 @@ The output must look identical to what was drawn. Do this before connecting the 
 Get strokes rendering and feeling good **before** connecting them to cards. Validate JSON round-trip. Build the eraser.
 
 ### Phase 2 — Data Model + REST API
-Decks and cards, full CRUD. No drawing yet. Keep API versioned: `/api/v1/...`.
+Define JPA entities (User, Deck, Card) and Spring Data repositories. Implement full CRUD via REST controllers. No drawing yet. Keep API versioned: `/api/v1/...`. Write at least basic integration tests — a backend with zero tests is a yellow flag to interviewers.
 
 ### Phase 3 — Card UI
 Create, edit, delete, view cards. Text input on front and back. Flip animation. Loading, error, and empty states.
@@ -336,8 +349,9 @@ Done well, this project demonstrates:
 - SVG rendering and vector graphics fundamentals
 - Real-time-feeling UI with meaningful animations
 - Multi-entity relational data model with mixed content types
+- Spring Boot backend with JPA, proper layering (controller → service → repository), and tested endpoints
+- Spring Security auth integration
 - Full stack ownership from database schema to UI component
-- Auth integration without rolling your own
 - AI feature integration (Phase 3)
 - A deployed, live, demoed product
 
@@ -351,7 +365,7 @@ That is an unusually complete picture for a junior portfolio project, and every 
 - **Stroke animation:** Replay a card being written, stroke by stroke
 - **Collaborative decks:** Share a deck with another user
 - **Export:** Export a deck as a PDF with printed card fronts and backs
-- **Spring Boot backend:** Migrate the API layer to Spring Boot once the product is stable — at that point you have a concrete reason to use it and something to compare against
+- **WebSocket support:** Real-time collaborative editing using Spring's WebSocket support
 
 ---
 
