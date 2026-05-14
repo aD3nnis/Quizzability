@@ -9,9 +9,16 @@ interface DrawingCanvasProps {
     activePoints: Point[]
     activeColor: string
     svgPointerProps: Pick<React.SVGProps<SVGSVGElement>, 'onPointerDown' | 'onPointerMove' | 'onPointerUp' | 'onPointerCancel'>
+    placeholder: string
 }
 
-export default function DrawingCanvas({ strokes, activePoints, activeColor, svgPointerProps }: DrawingCanvasProps) {
+export default function DrawingCanvas({
+    strokes,
+    activePoints,
+    activeColor,
+    svgPointerProps,
+    placeholder,
+  }: DrawingCanvasProps) {    
     const draftD = pointsToSvgPath(activePoints)
     return (
       <svg
@@ -22,6 +29,11 @@ export default function DrawingCanvas({ strokes, activePoints, activeColor, svgP
           <path key={stroke.id} d={strokeToSvgPath(stroke)} />
         ))}
         {draftD ? <path d={draftD} fill={activeColor} /> : null}
+        {placeholder && !strokes.length && !draftD && !activePoints.length && (
+          <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill="gray" opacity={0.5}>
+            {placeholder}
+          </text>
+        )}
       </svg>
     )
 }
