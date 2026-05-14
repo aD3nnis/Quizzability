@@ -9,13 +9,14 @@ function App() {
 
   return (
 
-        <div>
+        <div className="card-container">
+          
             <DrawingCanvas 
               strokes={frontStrokes} 
               activePoints={draftFace === 'front' ? activePoints : []} 
               activeColor={currentColor} 
               svgPointerProps={getSvgPointerProps('front')}
-            />
+            />            
             <DrawingCanvas 
               strokes={backStrokes} 
               activePoints={draftFace === 'back' ? activePoints : []} 
