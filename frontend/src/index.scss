@@ -28,6 +28,7 @@
   @media (max-width: 1024px) {
     font-size: 16px;
   }
+  overscroll-behavior: none;
 }
 
 @media (prefers-color-scheme: dark) {

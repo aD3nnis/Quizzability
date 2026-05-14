@@ -54,3 +54,68 @@ That wrapper is defined inline in `App.tsx`: the root of your `App` component wr
 ```
 
 `DrawingCanvas.tsx` does not add another div; it only renders the `<svg>`. So any change to that outer box is entirely in `App.tsx` (or whatever parent you later wrap the app with, e.g. `main.tsx` → `#root`).
+
+---
+## me: 
+adding overscroll-behavior: none; to :root fixed trhe problem but i think i want that to be a style specifc to the phase of the card where a person is going to write on the card. That style i want in its own scss file. I think a title that makes sense for now would be active-freehand-card or something. How should I think about setting up that toggle? Here is the workflow I am thinking. User selects make flashcard set -> chooses freehand -> first card appears to write and thats when :root becomes overscroll-behavior: none;
+
+---
+## cursor: 
+Here is a concise way to think about it.
+
+## What you are really toggling
+
+`overscroll-behavior` only affects how scrolling **at scroll boundaries** behaves (and related chaining). It applies to **scroll containers**. On many mobile browsers, the meaningful scroll container for “page bounce” is still effectively the **viewport / document**, so the rule usually has to live on something that participates in that chain: most often **`html`**, sometimes **`body`**, not only a deep inner `.card` div.
+
+So “phase-specific” does not mean “only inside the card component in the DOM tree.” It means: **only while this phase is active, we attach a class (or data attribute) on a root-level element** and your SCSS targets that. The **logic** of when that happens lives in React (or your router); the **look** lives in your new file.
+
+## File and naming
+
+A dedicated file is a good idea. Names that age well describe the **phase or surface**, not only one property, for example:
+
+- `freehand-writing-phase.scss`  
+- or `active-freehand-card.scss` (your idea is fine)
+
+Inside, prefer a **single hook class or attribute** so the file stays obvious:
+
+```scss
+// Concept only — you would implement in Agent mode
+html.freehand-writing-phase {
+  overscroll-behavior: none;
+}
+```
+
+Import that file **once** (e.g. from `main.tsx` next to `index.scss`, or from the layout that owns flashcards) so the rules exist globally, but they only **apply** when the class is present.
+
+## How to toggle it in the workflow
+
+**State-driven class on `document.documentElement` (`<html>`)** is the usual pattern:
+
+1. You have app state or a route like: idle → creating set → chose freehand → **first card writing**.
+2. When you enter **“first card writing”** (and any later cards in the same mode, if you want the same behavior), run an effect that adds `freehand-writing-phase` to `<html>`.
+3. When the user leaves that mode (back, finish set, switch to typed cards, etc.), remove the class in the effect cleanup.
+
+That gives you:
+
+- **One source of truth**: React phase / URL.
+- **No global accidental lock-in**: class removed when the phase unmounts or changes.
+- **Co-located styles**: the SCSS file documents “everything we do to the page while freehand is active” (later you might add `touch-action`, `overflow`, safe-area, etc. in the same hook).
+
+Alternative: put `data-app-phase="freehand-writing"` on `html` and use `[data-app-phase="freehand-writing"]` in SCSS — same idea, slightly easier to grep in DevTools.
+
+## What not to rely on alone
+
+- **Only a class on the card div**: may help for scroll chaining *inside* a nested scroll area, but often does not replace `html`/`body` behavior for full-page overscroll on phones.
+- **Only `:root` in a static stylesheet**: always on; you wanted phase-specific, so move the selector to `html.phase-name` (or `html[data-phase="..."]`).
+
+## Summary mental model
+
+| Piece | Role |
+|--------|------|
+| **Route / wizard step / context** | Decides “are we in freehand writing?” |
+| **`useEffect` (+ cleanup)** | Adds/removes class on `document.documentElement` |
+| **`freehand-writing-phase.scss` (name TBD)** | Defines what `html.freehand-writing-phase { ... }` does |
+
+That matches your workflow: after **make set → freehand → first card shown for writing**, enter the phase and add the class; when they leave, remove it. If you later split “browsing deck” vs “writing on card,” you can use two classes or one enum-like `data-phase` and keep one SCSS file with multiple blocks.
+
+I am in **Ask mode**, so I cannot add the file or effect for you; in **Agent mode** you could have this wired to your actual step state or routes in one pass.
