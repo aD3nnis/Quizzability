@@ -5,17 +5,23 @@ import { useDrawingEngine } from './hooks/useDrawingEngine'
 
 function App() {
 
-  const { svgPointerProps, strokes, activePoints, currentColor } = useDrawingEngine()
+  const { getSvgPointerProps, frontStrokes, backStrokes, activePoints, currentColor, draftFace } = useDrawingEngine()
 
   return (
 
         <div>
-          <DrawingCanvas 
-            strokes={strokes} 
-            activePoints={activePoints} 
-            activeColor={currentColor} 
-            svgPointerProps={svgPointerProps} 
-          />
+            <DrawingCanvas 
+              strokes={frontStrokes} 
+              activePoints={draftFace === 'front' ? activePoints : []} 
+              activeColor={currentColor} 
+              svgPointerProps={getSvgPointerProps('front')}
+            />
+            <DrawingCanvas 
+              strokes={backStrokes} 
+              activePoints={draftFace === 'back' ? activePoints : []} 
+              activeColor={currentColor} 
+              svgPointerProps={getSvgPointerProps('back')}
+            />
         </div>
   )
 }

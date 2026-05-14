@@ -105,3 +105,172 @@ import { motion } from "motion/react"
 (Use `AnimatePresence` from the same path if you need exit animations.)
 
 There are no `framer-motion` / `motion/react` imports under `frontend/src` yet, so nothing in app code needs updating until you write those imports. The lockfile may still mention `framer-motion` if the `motion` package depends on it internally; that is normal and does not mean you should install `framer-motion` yourself again.
+
+---
+## me: 
+I am trying to create a flip card animation using motion this site: 
+https://dev.to/graciesharma/how-to-create-a-flipping-card-animation-using-framer-motion-5djh 
+has this code as an example of how to do it: How could I implement this?
+
+How to Create a Flipping Card Animation Using Framer Motion
+
+
+```
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import CardFront from "./card-front";
+import CardBack from "./card-back";
+
+const FlippingCard = () => {
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsFlipped((prev) => !prev);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      className="card-container"
+      style={{
+        width: "454px",
+        height: "271px",
+        perspective: "1000px", // Adds depth for 3D animation
+      }}
+    >
+      <motion.div
+        className="card"
+        animate={{ rotateY: isFlipped ? 180 : 0 }} // Animates the flip
+        transition={{ duration: 1 }} // Controls the flip speed
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          transformStyle: "preserve-3d", // Enables 3D effect
+        }}
+      >
+        {/* Front Side */}
+        <motion.div
+          className="card-front"
+          style={{
+            position: "absolute",
+            backfaceVisibility: "hidden", // Ensures only one side is visible
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CardFront />
+        </motion.div>
+
+        {/* Back Side */}
+        <motion.div
+          className="card-back"
+          style={{
+            position: "absolute",
+            backfaceVisibility: "hidden",
+            transform: "rotateY(180deg)", // Flips the back face
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CardBack />
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default FlippingCard;
+```
+
+---
+## cursor: 
+Your Quizability frontend already depends on **`motion`** (not a direct `framer-motion` entry in `package.json`). The DEV article’s pattern is correct; you only need to align imports and drop Next.js-only bits for Vite.
+
+## How the pattern works
+
+1. **Outer wrapper** – `perspective` on the parent so `rotateY` looks 3D, not flat.
+2. **Inner “hinge”** – One element animates `rotateY` from `0` to `180` (or back). `transformStyle: "preserve-3d"` keeps child faces in 3D space.
+3. **Two faces** – Both absolutely fill the card. `backfaceVisibility: "hidden"` hides the face that is turned away.
+4. **Back face** – Static `transform: "rotateY(180deg)"` so when the parent is at `0` you see the front, and when the parent is at `180deg` the back’s local rotation lines up with the camera.
+
+That matches the article: [How to Create a Flipping Card Animation Using Framer Motion](https://dev.to/graciesharma/how-to-create-a-flipping-card-animation-using-framer-motion-5djh).
+
+## Implementing it in your Vite + React app
+
+**1. Import `motion` for React**
+
+Use the Motion package you already have:
+
+```ts
+import { motion } from "motion/react";
+```
+
+Not `from "framer-motion"`. The API for `motion.div`, `animate`, and `transition` is the same for this use case.
+
+**2. Skip `"use client"`**
+
+That directive is for the Next.js App Router. With Vite you do not need it.
+
+**3. Wire your content**
+
+Replace `CardFront` / `CardBack` with your own components or JSX (e.g. question on the front, answer on the back).
+
+**4. Choose what toggles `isFlipped`**
+
+- **Auto flip (like the article):** `useEffect` + `setInterval` + cleanup `clearInterval`.
+- **User flip:** e.g. `onClick={() => setIsFlipped((v) => !v)}` on the outer container or a button; you can remove the interval entirely.
+
+**5. Optional polish**
+
+- **`transition`:** e.g. `{ duration: 0.5, ease: "easeInOut" }` for a snappier or smoother feel.
+- **Accessibility:** if the whole card is clickable, add `role="button"`, `tabIndex={0}`, and keyboard handling (`Enter` / `Space`), or use a real `<button>` for the control.
+- **Reduced motion:** respect `prefers-reduced-motion` by skipping animation or jumping state without transition.
+
+## Minimal structural checklist
+
+| Layer | Role |
+|--------|------|
+| Outer `motion.div` | `perspective`, fixed `width` / `height` |
+| Middle `motion.div` | `animate={{ rotateY: isFlipped ? 180 : 0 }}`, `transformStyle: "preserve-3d"`, `position: "relative"` |
+| Front inner `motion.div` | `position: "absolute"`, full size, `backfaceVisibility: "hidden"` |
+| Back inner `motion.div` | Same + `transform: "rotateY(180deg)"` |
+
+If something looks wrong in the browser, the usual fixes are: missing `perspective` on an ancestor, forgetting `preserve-3d`, or the back face missing the initial `rotateY(180deg)`.
+
+I’m in **Ask mode**, so I can’t add the component to your repo for you. If you want this dropped into a specific file (e.g. next to `DrawingCanvas`), switch to **Agent mode** and say where it should live.
+---
+## me: 
+where should i build the flip animation? What directory or new file?
+
+---
+## cursor:
+Given your layout, the natural place is **`frontend/src/components/`**, next to `DrawingCanvas.tsx`.
+
+## Recommended file
+
+**`frontend/src/components/FlipCard.tsx`** (or `FlippingCard.tsx` if you prefer the article’s name)
+
+That matches how you already organize UI: a single default export component under `components/`, then imported from `App.tsx` (same pattern as `DrawingCanvas`).
+
+## When to add more files
+
+- **`FlipCard.scss`** (or a block in an existing sheet) only if the styles grow beyond a few inline props; you already use `App.scss` and `frontend/src/styles/freehand-card.scss`, so either co-located SCSS or a small entry under `styles/` is consistent.
+- **Subcomponents** like `CardFront.tsx` / `CardBack.tsx` in the same folder (or a subfolder `components/flip-card/`) if the two faces get large; for short JSX you can keep everything in `FlipCard.tsx` at first.
+
+## Where to use it
+
+**`App.tsx`** is the right place to render `<FlipCard />` (or wrap layout around `DrawingCanvas`) until you introduce routes or a dedicated page layout.
+
+You do **not** need a new top-level directory unless you later group several card-related pieces; `components/` is enough for this project size.

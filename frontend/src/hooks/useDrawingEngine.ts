@@ -14,12 +14,23 @@ function releasePointerIfCaptured(e: React.PointerEvent<SVGSVGElement>): void {
 }
 
 export function useDrawingEngine() {
-  const [strokes, setStrokes] = useState<Stroke[]>([])
+  const [frontStrokes, setFrontStrokes] = useState<Stroke[]>([])
+  const [backStrokes, setBackStrokes] = useState<Stroke[]>([])
   const [activePoints, setActivePoints] = useState<Point[]>([])
   const [currentColor, setCurrentColor] = useState<string>('#000000')
   const [currentTool, setCurrentTool] = useState<Stroke['tool']>('pen')
   const isDrawingRef = useRef(false)
+  const gestureFaceRef = useRef<'front' | 'back' | null>(null)
   const draftRef = useRef<Point[]>([])
+  const [draftFace, setDraftFace] = useState<'front' | 'back' | null>(null)
+
+  function resetGestureDraftState() {
+    draftRef.current = []
+    setActivePoints([])
+    setDraftFace(null)
+    isDrawingRef.current = false
+    gestureFaceRef.current = null
+  }
 
   function endGesture(e: React.PointerEvent<SVGSVGElement>, commit: boolean): void {
     releasePointerIfCaptured(e)
@@ -27,23 +38,38 @@ export function useDrawingEngine() {
     if (!isDrawingRef.current) return
 
     isDrawingRef.current = false
+    const face = gestureFaceRef.current
     const points = [...draftRef.current]
-    draftRef.current = []
-    setActivePoints([])
 
-    if (commit && points.length > 0) {
+    if (commit && points.length > 0 && face) {
       const newStroke: Stroke = {
         id: crypto.randomUUID(),
         points,
         color: currentColor,
         tool: currentTool,
       }
-      setStrokes((prev) => [...prev, newStroke])
+      if (face === 'front') {
+        setFrontStrokes((prev) => [...prev, newStroke])
+      } else if (face === 'back') {
+        setBackStrokes((prev) => [...prev, newStroke])
+      }
+      resetGestureDraftState()
     }
+    gestureFaceRef.current = null
   }
-
-  function handlePointerDown(e: React.PointerEvent<SVGSVGElement>) {
-    e.preventDefault()
+  function getSvgPointerProps(face: 'front' | 'back') {
+    return {
+        onPointerDown:(e: React.PointerEvent<SVGSVGElement>) => {
+            handlePointerDown(e, face)
+        },
+        onPointerMove: handlePointerMove,
+        onPointerUp: handlePointerUp,
+        onPointerCancel: handlePointerCancel,
+        }
+    }
+    function handlePointerDown(e: React.PointerEvent<SVGSVGElement>, face: 'front' | 'back') {    e.preventDefault()
+    gestureFaceRef.current = face
+    setDraftFace(face)
     e.currentTarget.setPointerCapture(e.pointerId)
 
     draftRef.current = [
@@ -78,23 +104,29 @@ export function useDrawingEngine() {
     endGesture(e, false)
   }
 
-  function clearStrokes() {
-    setStrokes([])
+  function clearAllStrokes() {
+    clearFace('front')
+    clearFace('back')
+  }
+  function clearFace(face: 'front' | 'back') {
+    if (face === 'front') {
+      setFrontStrokes([])
+    } else {
+      setBackStrokes([])
+    }
   }
 
   return {
-    strokes,
+    frontStrokes,
+    backStrokes,
     activePoints,
     currentColor,
     currentTool,
     setCurrentColor,
     setCurrentTool,
-    svgPointerProps: {
-      onPointerDown: handlePointerDown,
-      onPointerMove: handlePointerMove,
-      onPointerUp: handlePointerUp,
-      onPointerCancel: handlePointerCancel,
-    },
-    clearStrokes,
+    clearFace,
+    clearAllStrokes,
+    getSvgPointerProps,
+    draftFace,
   }
 }

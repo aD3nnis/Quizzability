@@ -1,4 +1,4 @@
-# Notecard App — Project Planning Document
+# Quizzability — Project Planning Document
 
 > A cross between Quizlet and Notability. Users can create stacks of notecards with typed text and/or freehand drawing (mouse, Apple Pencil, or finger), study them in shuffle mode, and eventually generate cards from PDFs using AI.
 
