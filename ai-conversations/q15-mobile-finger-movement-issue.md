@@ -33,3 +33,24 @@ Useful labels for support or issues:
 - Optionally add **`overscroll-behavior: none`** on `html`/`body` or the scroll container to reduce rubber-band scrolling chaining on iOS (secondary to `touch-action`).
 
 Your description does **not** need more clarification for diagnosis; it already points to **touch gesture routing** (scroll vs draw) and possibly **SVG not covering the full viewport**. If you want this applied in the project, switch to Agent mode and we can wire `touch-action` and sizing in the right files.
+
+--- 
+## me: 
+that did not work using just touch-action. One thing i want to try is the div surrounding svg has width and a height i want to get rid of or manipulate. Where is that defined?
+
+---
+## cursor: 
+That wrapper is defined inline in `App.tsx`: the root of your `App` component wraps `DrawingCanvas` in a `div` with `width: '100vw'` and `height: '100vh'`.
+
+```12:19:/Users/avadennis/Documents/learning-career-focused/projects/Quizability/frontend/src/App.tsx
+        <div style={{ width: '100vw', height: '100vh' }}>
+          <DrawingCanvas 
+            strokes={strokes} 
+            activePoints={activePoints} 
+            activeColor={currentColor} 
+            svgPointerProps={svgPointerProps} 
+          />
+        </div>
+```
+
+`DrawingCanvas.tsx` does not add another div; it only renders the `<svg>`. So any change to that outer box is entirely in `App.tsx` (or whatever parent you later wrap the app with, e.g. `main.tsx` → `#root`).
