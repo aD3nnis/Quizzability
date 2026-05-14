@@ -12,6 +12,18 @@ function releasePointerIfCaptured(e: React.PointerEvent<SVGSVGElement>): void {
     el.releasePointerCapture(e.pointerId)
   }
 }
+function pointerToSvgUser(e: React.PointerEvent<SVGSVGElement>): { x: number; y: number } {
+    const svg = e.currentTarget
+    const ctm = svg.getScreenCTM()
+    if (!ctm) {
+      return { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY }
+    }
+    const pt = svg.createSVGPoint()
+    pt.x = e.clientX
+    pt.y = e.clientY
+    const p = pt.matrixTransform(ctm.inverse())
+    return { x: p.x, y: p.y }
+  }
 
 export function useDrawingEngine() {
   const [frontStrokes, setFrontStrokes] = useState<Stroke[]>([])
@@ -72,10 +84,11 @@ export function useDrawingEngine() {
     setDraftFace(face)
     e.currentTarget.setPointerCapture(e.pointerId)
 
+    const { x, y } = pointerToSvgUser(e)
     draftRef.current = [
       {
-        x: e.nativeEvent.offsetX,
-        y: e.nativeEvent.offsetY,
+        x,
+        y,
         pressure: pointerPressure(e),
         timestamp: Date.now(),
       },
@@ -87,9 +100,10 @@ export function useDrawingEngine() {
   function handlePointerMove(e: React.PointerEvent<SVGSVGElement>) {
     if (!isDrawingRef.current) return
 
+    const { x, y } = pointerToSvgUser(e)
     draftRef.current.push({
-      x: e.nativeEvent.offsetX,
-      y: e.nativeEvent.offsetY,
+      x,
+      y,
       pressure: pointerPressure(e),
       timestamp: Date.now(),
     })
