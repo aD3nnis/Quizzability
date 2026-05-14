@@ -14,7 +14,7 @@ interface DrawingCanvasProps {
 export default function DrawingCanvas({ strokes, activePoints, activeColor, svgPointerProps }: DrawingCanvasProps) {
     const draftD = pointsToSvgPath(activePoints)
     return (
-      <svg {...svgPointerProps}>
+      <svg style={{ backgroundColor: 'cornflowerblue' }} {...svgPointerProps}>
         {strokes.map(stroke => (
           <path key={stroke.id} d={strokeToSvgPath(stroke)} />
         ))}

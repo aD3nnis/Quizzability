@@ -59,7 +59,7 @@ This project is being built for a **portfolio targeting Series B full stack engi
 | Layer | Choice | Reason |
 |---|---|---|
 | Frontend | React + TypeScript | Market relevance; component model suits card UI well; shows Vue → React adaptability |
-| Styling | Tailwind CSS | Utility-first, fast to build with, widely used in the industry |
+| Styling | Sass CSS | Utility-first, widely used in the industry |
 | Animation | Framer Motion | Card flip animations; will look impressive in demos |
 | Drawing | Custom SVG drawing engine via React | Keep drawing logic in a custom hook; SVG renders inside JSX naturally |
 | Stroke Smoothing | Perfect Freehand (library) | Industry-standard, pressure-aware, outputs SVG-compatible polygon data |
